@@ -6,7 +6,8 @@
     <title>Church Registry System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Updated path to CSS -->
+    <link rel="stylesheet" href="/static/style/style.css">
 </head>
 <body>
     <div id="app">
@@ -14,35 +15,18 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
+            <p class="mt-2">Loading Church Registry System...</p>
         </div>
     </div>
 
     <script>
-        // Check authentication status
-        function checkAuth() {
-            const token = localStorage.getItem('auth_token');
-            const currentPage = getCurrentPage();
-            
-            if (!token && currentPage !== 'login') {
-                loadPage('login');
-            } else if (token && currentPage === 'login') {
-                loadPage('dashboard');
-            } else if (currentPage === '') {
-                loadPage('login');
-            } else {
-                loadPage(currentPage);
-            }
-        }
+        // Global variables
+        let currentPage = 'login';
         
-        // Get current page from URL hash
-        function getCurrentPage() {
-            const hash = window.location.hash.substring(1);
-            return hash || localStorage.getItem('currentPage') || 'login';
-        }
-        
-        // Load page dynamically - FIXED VERSION
-        async function loadPage(pageName, params = {}) {
+        // Load page function
+        async function loadPage(pageName) {
             const app = document.getElementById('app');
+            currentPage = pageName;
             
             // Show loading
             app.innerHTML = `
@@ -55,56 +39,29 @@
             `;
             
             try {
-                // Try multiple paths to find the HTML file
-                let html = null;
-                let response = null;
+                // Try to fetch the HTML file
+                const response = await fetch(`/${pageName}.html`);
                 
-                // First try: Direct Django template URL
-                try {
-                    response = await fetch(`/${pageName}.html`);
-                    if (response.ok) {
-                        html = await response.text();
-                    }
-                } catch (e) {
-                    console.log('Direct fetch failed, trying static path...');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                // Second try: Static path
-                if (!html) {
-                    try {
-                        response = await fetch(`/static/${pageName}.html`);
-                        if (response.ok) {
-                            html = await response.text();
-                        }
-                    } catch (e) {
-                        console.log('Static fetch failed, trying template path...');
-                    }
-                }
-                
-                // Third try: Template path
-                if (!html) {
-                    try {
-                        response = await fetch(`/templates/${pageName}.html`);
-                        if (response.ok) {
-                            html = await response.text();
-                        }
-                    } catch (e) {
-                        console.log('Template fetch failed');
-                    }
-                }
-                
-                if (!html) {
-                    throw new Error(`Could not load ${pageName}.html`);
-                }
-                
+                const html = await response.text();
                 app.innerHTML = html;
                 
                 // Update URL hash
                 window.location.hash = pageName;
-                localStorage.setItem('currentPage', pageName);
                 
-                // Initialize page-specific JavaScript
-                initializePage(pageName, params);
+                // Initialize page scripts
+                setTimeout(() => {
+                    if (pageName === 'login' && typeof window.initLogin === 'function') {
+                        window.initLogin();
+                    } else if (pageName === 'dashboard' && typeof window.initDashboard === 'function') {
+                        window.initDashboard();
+                    } else if (pageName === 'members' && typeof window.initMembers === 'function') {
+                        window.initMembers();
+                    }
+                }, 100);
                 
             } catch (error) {
                 console.error('Error loading page:', error);
@@ -115,17 +72,14 @@
                             <p>Could not load ${pageName}.html</p>
                             <p class="text-muted">Error: ${error.message}</p>
                             <hr>
-                            <p>Please check:</p>
+                            <h5>Debug Information:</h5>
                             <ul>
-                                <li>File exists in the frontend folder: <code>frontend/${pageName}.html</code></li>
-                                <li>Django server is running: <code>python manage.py runserver</code></li>
-                                <li>Static files are being served correctly</li>
+                                <li>File should be at: <code>frontend/${pageName}.html</code></li>
+                                <li>Try visiting: <a href="/${pageName}.html" target="_blank">/${pageName}.html</a></li>
+                                <li>Debug endpoint: <a href="/api/debug-files/" target="_blank">/api/debug-files/</a></li>
                             </ul>
-                            <button class="btn btn-primary mt-3" onclick="loadPage('dashboard')">
-                                <i class="fas fa-home"></i> Go to Dashboard
-                            </button>
-                            <button class="btn btn-secondary mt-3 ms-2" onclick="location.reload()">
-                                <i class="fas fa-sync"></i> Refresh
+                            <button class="btn btn-primary mt-2" onclick="loadPage('login')">
+                                <i class="fas fa-sync"></i> Try Again
                             </button>
                         </div>
                     </div>
@@ -133,49 +87,7 @@
             }
         }
         
-        // Initialize page based on name
-        function initializePage(pageName, params) {
-            console.log('Initializing page:', pageName);
-            switch(pageName) {
-                case 'login':
-                    if (typeof initLogin === 'function') initLogin();
-                    break;
-                case 'dashboard':
-                    if (typeof initDashboard === 'function') initDashboard();
-                    break;
-                case 'members':
-                    if (typeof initMembers === 'function') initMembers();
-                    break;
-                case 'member-detail':
-                    if (typeof initMemberDetail === 'function') initMemberDetail(params);
-                    break;
-                case 'member-form':
-                    if (typeof initMemberForm === 'function') initMemberForm(params);
-                    break;
-                case 'sacraments':
-                    if (typeof initSacraments === 'function') initSacraments(params);
-                    break;
-                case 'sacrament-form':
-                    if (typeof initSacramentForm === 'function') initSacramentForm(params);
-                    break;
-                case 'pledges':
-                    if (typeof initPledges === 'function') initPledges();
-                    break;
-                case 'pledge-form':
-                    if (typeof initPledgeForm === 'function') initPledgeForm(params);
-                    break;
-                case 'payments':
-                    if (typeof initPayments === 'function') initPayments(params);
-                    break;
-                case 'reports':
-                    if (typeof initReports === 'function') initReports();
-                    break;
-                default:
-                    console.log('No initialization for:', pageName);
-            }
-        }
-        
-        // API Helper Function
+        // API call helper
         async function apiCall(endpoint, method = 'GET', data = null) {
             const token = localStorage.getItem('auth_token');
             const headers = {
@@ -195,24 +107,28 @@
                 options.body = JSON.stringify(data);
             }
             
-            try {
-                const response = await fetch(`/api${endpoint}`, options);
-                const result = await response.json();
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user');
-                        loadPage('login');
-                        throw new Error('Session expired. Please login again.');
-                    }
-                    throw new Error(result.error || result.message || 'API Error');
+            const response = await fetch(`/api${endpoint}`, options);
+            const result = await response.json();
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user');
+                    loadPage('login');
                 }
-                
-                return result;
-            } catch (error) {
-                console.error('API Error:', error);
-                throw error;
+                throw new Error(result.error || 'API Error');
+            }
+            
+            return result;
+        }
+        
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                loadPage('dashboard');
+            } else {
+                loadPage('login');
             }
         }
         
@@ -221,7 +137,6 @@
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('user');
-                localStorage.removeItem('currentPage');
                 loadPage('login');
             }
         }
@@ -245,19 +160,19 @@
             });
         }
         
-        // Check auth on page load
-        document.addEventListener('DOMContentLoaded', checkAuth);
+        // Start the app
+        checkAuth();
         
         // Listen for hash changes
         window.addEventListener('hashchange', () => {
-            const page = getCurrentPage();
-            if (page !== 'login' || localStorage.getItem('auth_token')) {
-                loadPage(page);
+            const hash = window.location.hash.substring(1);
+            if (hash && hash !== currentPage) {
+                loadPage(hash);
             }
         });
     </script>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/app.js"></script>
+    <!-- Updated path to JavaScript -->
+    <script src="/static/scripts/app.js"></script>
 </body>
 </html>
