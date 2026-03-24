@@ -40,7 +40,7 @@
             return hash || localStorage.getItem('currentPage') || 'login';
         }
         
-        // Load page dynamically
+        // Load page dynamically - FIXED VERSION
         async function loadPage(pageName, params = {}) {
             const app = document.getElementById('app');
             
@@ -50,14 +50,53 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
+                    <p class="mt-2">Loading ${pageName}...</p>
                 </div>
             `;
             
             try {
-                const response = await fetch(`/static/${pageName}.html`);
-                if (!response.ok) throw new Error('Page not found');
+                // Try multiple paths to find the HTML file
+                let html = null;
+                let response = null;
                 
-                let html = await response.text();
+                // First try: Direct Django template URL
+                try {
+                    response = await fetch(`/${pageName}.html`);
+                    if (response.ok) {
+                        html = await response.text();
+                    }
+                } catch (e) {
+                    console.log('Direct fetch failed, trying static path...');
+                }
+                
+                // Second try: Static path
+                if (!html) {
+                    try {
+                        response = await fetch(`/static/${pageName}.html`);
+                        if (response.ok) {
+                            html = await response.text();
+                        }
+                    } catch (e) {
+                        console.log('Static fetch failed, trying template path...');
+                    }
+                }
+                
+                // Third try: Template path
+                if (!html) {
+                    try {
+                        response = await fetch(`/templates/${pageName}.html`);
+                        if (response.ok) {
+                            html = await response.text();
+                        }
+                    } catch (e) {
+                        console.log('Template fetch failed');
+                    }
+                }
+                
+                if (!html) {
+                    throw new Error(`Could not load ${pageName}.html`);
+                }
+                
                 app.innerHTML = html;
                 
                 // Update URL hash
@@ -70,12 +109,25 @@
             } catch (error) {
                 console.error('Error loading page:', error);
                 app.innerHTML = `
-                    <div class="alert alert-danger m-5">
-                        <h4><i class="fas fa-exclamation-triangle"></i> Error Loading Page</h4>
-                        <p>Could not load ${pageName}.html. Please check if the file exists.</p>
-                        <button class="btn btn-primary mt-3" onclick="loadPage('dashboard')">
-                            <i class="fas fa-home"></i> Go to Dashboard
-                        </button>
+                    <div class="container mt-5">
+                        <div class="alert alert-danger">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Error Loading Page</h4>
+                            <p>Could not load ${pageName}.html</p>
+                            <p class="text-muted">Error: ${error.message}</p>
+                            <hr>
+                            <p>Please check:</p>
+                            <ul>
+                                <li>File exists in the frontend folder: <code>frontend/${pageName}.html</code></li>
+                                <li>Django server is running: <code>python manage.py runserver</code></li>
+                                <li>Static files are being served correctly</li>
+                            </ul>
+                            <button class="btn btn-primary mt-3" onclick="loadPage('dashboard')">
+                                <i class="fas fa-home"></i> Go to Dashboard
+                            </button>
+                            <button class="btn btn-secondary mt-3 ms-2" onclick="location.reload()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
                     </div>
                 `;
             }
@@ -83,6 +135,7 @@
         
         // Initialize page based on name
         function initializePage(pageName, params) {
+            console.log('Initializing page:', pageName);
             switch(pageName) {
                 case 'login':
                     if (typeof initLogin === 'function') initLogin();
