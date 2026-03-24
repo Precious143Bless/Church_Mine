@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Form - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation (same as dashboard) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6">
+                        <i class="fas fa-user-plus me-2"></i>
+                        <span id="formTitle">Add New Member</span>
+                    </h1>
+                    <button class="btn btn-secondary" onclick="loadPage('members')">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Members
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <form id="memberForm">
+                            <h5 class="mb-3">Personal Information</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" id="firstName" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" id="lastName" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Middle Name</label>
+                                    <input type="text" class="form-control" id="middleName">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Suffix</label>
+                                    <input type="text" class="form-control" id="suffix" placeholder="Jr., Sr., III">
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Birth Date *</label>
+                                    <input type="date" class="form-control" id="birthDate" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender *</label>
+                                    <select class="form-select" id="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="M">Male</option>
+                                        <option value="F">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Civil Status *</label>
+                                    <select class="form-select" id="civilStatus" required>
+                                        <option value="">Select Status</option>
+                                        <option value="Single">Single</option>
+                                        <option value="Married">Married</option>
+                                        <option value="Widowed">Widowed</option>
+                                        <option value="Divorced">Divorced</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Occupation</label>
+                                    <input type="text" class="form-control" id="occupation">
+                                </div>
+                            </div>
+                            
+                            <h5 class="mb-3 mt-4">Contact Information</h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Contact Number *</label>
+                                    <input type="tel" class="form-control" id="contactNumber" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Address *</label>
+                                <textarea class="form-control" id="address" rows="3" required></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Spouse Name (if married)</label>
+                                <input type="text" class="form-control" id="spouseName">
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <button type="button" class="btn btn-secondary" onclick="loadPage('members')">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Member
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let memberId = null;
+        
+        function initMemberForm(params) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            memberId = params.id ? parseInt(params.id) : null;
+            
+            if (memberId) {
+                document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Edit Member';
+                loadMemberData(memberId);
+            }
+            
+            const form = document.getElementById('memberForm');
+            form.addEventListener('submit', saveMember);
+        }
+        
+        async function loadMemberData(id) {
+            try {
+                const member = await apiCall(`/members/${id}/`);
+                
+                document.getElementById('firstName').value = member.first_name;
+                document.getElementById('lastName').value = member.last_name;
+                document.getElementById('middleName').value = member.middle_name || '';
+                document.getElementById('suffix').value = member.suffix || '';
+                document.getElementById('birthDate').value = member.birth_date;
+                document.getElementById('gender').value = member.gender;
+                document.getElementById('civilStatus').value = member.civil_status;
+                document.getElementById('occupation').value = member.occupation || '';
+                document.getElementById('contactNumber').value = member.contact_number;
+                document.getElementById('email').value = member.email || '';
+                document.getElementById('address').value = member.address;
+                document.getElementById('spouseName').value = member.spouse_name || '';
+                
+            } catch (error) {
+                console.error('Error loading member:', error);
+                alert('Error loading member data: ' + error.message);
+                loadPage('members');
+            }
+        }
+        
+        async function saveMember(e) {
+            e.preventDefault();
+            
+            const memberData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                middle_name: document.getElementById('middleName').value,
+                suffix: document.getElementById('suffix').value,
+                birth_date: document.getElementById('birthDate').value,
+                gender: document.getElementById('gender').value,
+                civil_status: document.getElementById('civilStatus').value,
+                occupation: document.getElementById('occupation').value,
+                contact_number: document.getElementById('contactNumber').value,
+                email: document.getElementById('email').value,
+                address: document.getElementById('address').value,
+                spouse_name: document.getElementById('spouseName').value,
+            };
+            
+            try {
+                let result;
+                if (memberId) {
+                    result = await apiCall(`/members/${memberId}/`, 'PUT', memberData);
+                    alert('Member updated successfully!');
+                } else {
+                    result = await apiCall('/members/', 'POST', memberData);
+                    alert('Member added successfully!');
+                }
+                
+                loadPage('members');
+            } catch (error) {
+                console.error('Error saving member:', error);
+                alert('Error saving member: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

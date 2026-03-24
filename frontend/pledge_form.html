@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pledge Form - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('pledges')">Pledges</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6">
+                        <i class="fas fa-hand-holding-heart me-2"></i>
+                        <span id="formTitle">New Pledge</span>
+                    </h1>
+                    <button class="btn btn-secondary" onclick="loadPage('pledges')">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Pledges
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <form id="pledgeForm">
+                            <div class="mb-3">
+                                <label class="form-label">Member *</label>
+                                <select class="form-select" id="memberId" required>
+                                    <option value="">Select Member</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Pledge Description *</label>
+                                <input type="text" class="form-control" id="description" placeholder="e.g., Church Building Fund, Christmas Offering" required>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Amount Promised *</label>
+                                    <input type="number" class="form-control" id="amountPromised" step="0.01" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Due Date *</label>
+                                    <input type="date" class="form-control" id="dueDate" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" rows="3" placeholder="Additional notes about this pledge..."></textarea>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <button type="button" class="btn btn-secondary" onclick="loadPage('pledges')">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Pledge
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pledgeId = null;
+        let members = [];
+        
+        function initPledgeForm(params) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            pledgeId = params.id ? parseInt(params.id) : null;
+            
+            if (pledgeId) {
+                document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Edit Pledge';
+            }
+            
+            loadMembers();
+            
+            if (pledgeId) {
+                loadPledgeData(pledgeId);
+            }
+            
+            const form = document.getElementById('pledgeForm');
+            form.addEventListener('submit', savePledge);
+        }
+        
+        async function loadMembers() {
+            try {
+                members = await apiCall('/members/');
+                const memberSelect = document.getElementById('memberId');
+                
+                memberSelect.innerHTML = '<option value="">Select Member</option>' +
+                    members.map(member => 
+                        `<option value="${member.id}">${member.first_name} ${member.last_name}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error('Error loading members:', error);
+                alert('Error loading members list');
+            }
+        }
+        
+        async function loadPledgeData(id) {
+            try {
+                const pledge = await apiCall(`/pledges/${id}/`);
+                
+                document.getElementById('memberId').value = pledge.member;
+                document.getElementById('description').value = pledge.pledge_description;
+                document.getElementById('amountPromised').value = pledge.amount_promised;
+                document.getElementById('dueDate').value = pledge.due_date;
+                document.getElementById('notes').value = pledge.notes || '';
+                
+                // Disable member selection when editing
+                document.getElementById('memberId').disabled = true;
+            } catch (error) {
+                console.error('Error loading pledge:', error);
+                alert('Error loading pledge data');
+            }
+        }
+        
+        async function savePledge(e) {
+            e.preventDefault();
+            
+            const pledgeData = {
+                member: parseInt(document.getElementById('memberId').value),
+                pledge_description: document.getElementById('description').value,
+                amount_promised: parseFloat(document.getElementById('amountPromised').value),
+                due_date: document.getElementById('dueDate').value,
+                notes: document.getElementById('notes').value,
+            };
+            
+            if (!pledgeData.member) {
+                alert('Please select a member');
+                return;
+            }
+            
+            try {
+                let result;
+                if (pledgeId) {
+                    result = await apiCall(`/pledges/${pledgeId}/`, 'PUT', pledgeData);
+                    alert('Pledge updated successfully!');
+                } else {
+                    result = await apiCall('/pledges/', 'POST', pledgeData);
+                    alert('Pledge created successfully!');
+                }
+                
+                loadPage('pledges');
+            } catch (error) {
+                console.error('Error saving pledge:', error);
+                alert('Error saving pledge: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

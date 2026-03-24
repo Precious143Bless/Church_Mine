@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation (same as dashboard) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="sacramentsDropdown" role="button" data-bs-toggle="dropdown">
+                            Sacraments
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Baptism'})">Baptism</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Confirmation'})">Confirmation</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Marriage'})">Marriage</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('pledges')">Pledges</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="loadPage('reports')">Reports</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="display-6 mb-4">
+                    <i class="fas fa-chart-bar me-2"></i>Reports
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Report Type Selection -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Report Type</label>
+                                <select class="form-select" id="reportType">
+                                    <option value="members">Member Directory</option>
+                                    <option value="sacraments">Sacrament Records</option>
+                                    <option value="pledges">Pledge Summary</option>
+                                    <option value="payments">Payment History</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary w-100" onclick="generateReport()">
+                                    <i class="fas fa-chart-line me-2"></i>Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Report Results -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Report Results</h5>
+                        <button class="btn btn-sm btn-light" onclick="printReport()">
+                            <i class="fas fa-print me-2"></i>Print Report
+                        </button>
+                    </div>
+                    <div class="card-body" id="reportResults">
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Select a report type and click Generate to view results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReportData = null;
+        
+        function initReports() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            // Set default date range (last 30 days to today)
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('endDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+        }
+        
+        async function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            const resultsDiv = document.getElementById('reportResults');
+            resultsDiv.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Generating report...</p>
+                </div>
+            `;
+            
+            try {
+                let url = `/reports/?type=${reportType}`;
+                if (startDate) url += `&start_date=${startDate}`;
+                if (endDate) url += `&end_date=${endDate}`;
+                
+                const data = await apiCall(url);
+                currentReportData = data;
+                displayReport(reportType, data);
+            } catch (error) {
+                console.error('Error generating report:', error);
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error generating report: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function displayReport(reportType, data) {
+            const resultsDiv = document.getElementById('reportResults');
+            
+            if (!data || data.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No records found for the selected criteria.
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="table-responsive">';
+            html += '<table class="table table-bordered table-hover">';
+            
+            if (reportType === 'members') {
+                html += `
+                    <thead class="table-light">
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Birth Date</th>
+                            <th>Gender</th>
+                            <th>Contact</th>
+                            <th>Civil Status</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(member => `
+                            <tr>
+                                <td>${member.first_name} ${member.last_name}</td>
+                                <td>${formatDate(member.birth_date)}</td>
+                                <td>${member.gender === 'M' ? 'Male' : 'Female'}</td>
+                                <td>${member.contact_number}</td>
+                                <td>${member.civil_status}</td>
+                                <td>${member.address}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+            } else if (reportType === 'sacraments') {
+                html += `
+                    <thead class="table-light">
+                        <tr>
+                            <th>Member</th>
+                            <th>Sacrament Type</th>
+                            <th>Date Received</th>
+                            <th>Officiating Priest</th>
+                            <th>Certificate #</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(sac => `
+                            <tr>
+                                <td>${sac.member_name}</td>
+                                <td>${sac.sacrament_type}</td>
+                                <td>${formatDate(sac.date_received)}</td>
+                                <td>${sac.officiating_priest}</td>
+                                <td>${sac.certificate_number || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+            } else if (reportType === 'pledges') {
+                html += `
+                    <thead class="table-light">
+                        <tr>
+                            <th>Member</th>
+                            <th>Description</th>
+                            <th>Amount Promised</th>
+                            <th>Total Paid</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(pledge => `
+                            <tr>
+                                <td>${pledge.member_name}</td>
+                                <td>${pledge.pledge_description}</td>
+                                <td class="text-end">${formatCurrency(pledge.amount_promised)}</td>
+                                <td class="text-end text-success">${formatCurrency(pledge.total_paid)}</td>
+                                <td class="text-end ${pledge.balance > 0 ? 'text-danger' : 'text-success'}">
+                                    ${formatCurrency(pledge.balance)}
+                                </td>
+                                <td>${formatDate(pledge.due_date)}</td>
+                                <td>
+                                    <span class="badge bg-${pledge.status === 'Fully Paid' ? 'success' : pledge.status === 'Partially Paid' ? 'warning' : 'danger'}">
+                                        ${pledge.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td colspan="2"><strong>Totals:</strong></td>
+                            <td class="text-end"><strong>${formatCurrency(data.reduce((sum, p) => sum + parseFloat(p.amount_promised), 0))}</strong></td>
+                            <td class="text-end"><strong>${formatCurrency(data.reduce((sum, p) => sum + parseFloat(p.total_paid), 0))}</strong></td>
+                            <td class="text-end"><strong>${formatCurrency(data.reduce((sum, p) => sum + parseFloat(p.balance), 0))}</strong></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                `;
+            } else if (reportType === 'payments') {
+                html += `
+                    <thead class="table-light">
+                        <tr>
+                            <th>Pledge</th>
+                            <th>Amount</th>
+                            <th>Payment Date</th>
+                            <th>Method</th>
+                            <th>Received By</th>
+                            <th>Receipt #</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(payment => `
+                            <tr>
+                                <td>${payment.pledge}</td>
+                                <td class="text-end text-success">${formatCurrency(payment.amount)}</td>
+                                <td>${formatDate(payment.payment_date)}</td>
+                                <td>${payment.payment_method}</td>
+                                <td>${payment.received_by}</td>
+                                <td>${payment.receipt_number || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <td><strong>Total:</strong></td>
+                            <td class="text-end"><strong>${formatCurrency(data.reduce((sum, p) => sum + parseFloat(p.amount), 0))}</strong></td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </tfoot>
+                `;
+            }
+            
+            html += '</table></div>';
+            resultsDiv.innerHTML = html;
+        }
+        
+        function printReport() {
+            const printContent = document.getElementById('reportResults').innerHTML;
+            const originalTitle = document.title;
+            document.title = 'Church Registry Report';
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Church Registry Report</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                        body { padding: 20px; }
+                        @media print {
+                            .btn, .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2 class="text-center mb-4">Church Registry System Report</h2>
+                        <p class="text-center text-muted">
+                            Generated on: ${new Date().toLocaleString()}
+                        </p>
+                        ${printContent}
+                        <div class="text-center mt-4">
+                            <small>This is a computer-generated document. No signature required.</small>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+            printWindow.close();
+            
+            document.title = originalTitle;
+        }
+    </script>
+</body>
+</html>

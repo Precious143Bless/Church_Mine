@@ -5,14 +5,18 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.db.models import Count, Sum, Q
-from django.utils import timezone
-from datetime import datetime, timedelta
+from django.shortcuts import render
+from datetime import datetime
 
 from .models import Member, Sacrament, Pledge, Payment
 from .serializers import (
     MemberSerializer, SacramentSerializer, 
     PledgeSerializer, PaymentSerializer, UserSerializer
 )
+
+# Serve index.html
+def serve_index(request):
+    return render(request, 'index.html')
 
 # Authentication Views
 @api_view(['POST'])
@@ -88,7 +92,7 @@ def member_detail(request, pk):
     elif request.method == 'DELETE':
         member.is_active = False
         member.save()
-        return Response({'message': 'Member deactivated'})
+        return Response({'message': 'Member deactivated successfully'})
 
 # Sacrament Views
 @api_view(['GET', 'POST'])
@@ -257,6 +261,8 @@ def dashboard(request):
 @permission_classes([IsAuthenticated])
 def reports(request):
     report_type = request.GET.get('type', '')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     
     if report_type == 'members':
         members = Member.objects.filter(is_active=True)
@@ -264,21 +270,30 @@ def reports(request):
         return Response(serializer.data)
     
     elif report_type == 'sacraments':
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-        
         sacraments = Sacrament.objects.all()
         if start_date:
             sacraments = sacraments.filter(date_received__gte=start_date)
         if end_date:
             sacraments = sacraments.filter(date_received__lte=end_date)
-        
         serializer = SacramentSerializer(sacraments, many=True)
         return Response(serializer.data)
     
     elif report_type == 'pledges':
         pledges = Pledge.objects.all()
+        if start_date:
+            pledges = pledges.filter(pledge_date__gte=start_date)
+        if end_date:
+            pledges = pledges.filter(pledge_date__lte=end_date)
         serializer = PledgeSerializer(pledges, many=True)
+        return Response(serializer.data)
+    
+    elif report_type == 'payments':
+        payments = Payment.objects.all()
+        if start_date:
+            payments = payments.filter(payment_date__gte=start_date)
+        if end_date:
+            payments = payments.filter(payment_date__lte=end_date)
+        serializer = PaymentSerializer(payments, many=True)
         return Response(serializer.data)
     
     return Response({'error': 'Invalid report type'}, 

@@ -10,11 +10,15 @@
 </head>
 <body>
     <div id="app">
-        <!-- Dynamic content will be loaded here -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Check if user is logged in
+        // Check authentication status
         function checkAuth() {
             const token = localStorage.getItem('auth_token');
             const currentPage = getCurrentPage();
@@ -30,11 +34,13 @@
             }
         }
         
+        // Get current page from URL hash
         function getCurrentPage() {
             const hash = window.location.hash.substring(1);
             return hash || localStorage.getItem('currentPage') || 'login';
         }
         
+        // Load page dynamically
         async function loadPage(pageName, params = {}) {
             const app = document.getElementById('app');
             
@@ -65,59 +71,58 @@
                 console.error('Error loading page:', error);
                 app.innerHTML = `
                     <div class="alert alert-danger m-5">
-                        <h4>Error Loading Page</h4>
+                        <h4><i class="fas fa-exclamation-triangle"></i> Error Loading Page</h4>
                         <p>Could not load ${pageName}.html. Please check if the file exists.</p>
-                        <button class="btn btn-primary" onclick="loadPage('dashboard')">Go to Dashboard</button>
+                        <button class="btn btn-primary mt-3" onclick="loadPage('dashboard')">
+                            <i class="fas fa-home"></i> Go to Dashboard
+                        </button>
                     </div>
                 `;
             }
         }
         
+        // Initialize page based on name
         function initializePage(pageName, params) {
             switch(pageName) {
                 case 'login':
-                    initLogin();
+                    if (typeof initLogin === 'function') initLogin();
                     break;
                 case 'dashboard':
-                    initDashboard();
+                    if (typeof initDashboard === 'function') initDashboard();
                     break;
                 case 'members':
-                    initMembers();
+                    if (typeof initMembers === 'function') initMembers();
                     break;
                 case 'member-detail':
-                    initMemberDetail(params);
+                    if (typeof initMemberDetail === 'function') initMemberDetail(params);
                     break;
                 case 'member-form':
-                    initMemberForm(params);
+                    if (typeof initMemberForm === 'function') initMemberForm(params);
                     break;
                 case 'sacraments':
-                    initSacraments();
+                    if (typeof initSacraments === 'function') initSacraments(params);
                     break;
-                case 'baptism-form':
-                    initBaptismForm(params);
-                    break;
-                case 'confirmation-form':
-                    initConfirmationForm(params);
-                    break;
-                case 'marriage-form':
-                    initMarriageForm(params);
+                case 'sacrament-form':
+                    if (typeof initSacramentForm === 'function') initSacramentForm(params);
                     break;
                 case 'pledges':
-                    initPledges();
+                    if (typeof initPledges === 'function') initPledges();
                     break;
                 case 'pledge-form':
-                    initPledgeForm(params);
+                    if (typeof initPledgeForm === 'function') initPledgeForm(params);
                     break;
                 case 'payments':
-                    initPayments(params);
+                    if (typeof initPayments === 'function') initPayments(params);
                     break;
                 case 'reports':
-                    initReports();
+                    if (typeof initReports === 'function') initReports();
                     break;
+                default:
+                    console.log('No initialization for:', pageName);
             }
         }
         
-        // API Helper Functions
+        // API Helper Function
         async function apiCall(endpoint, method = 'GET', data = null) {
             const token = localStorage.getItem('auth_token');
             const headers = {
@@ -142,7 +147,13 @@
                 const result = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(result.message || 'API Error');
+                    if (response.status === 401) {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user');
+                        loadPage('login');
+                        throw new Error('Session expired. Please login again.');
+                    }
+                    throw new Error(result.error || result.message || 'API Error');
                 }
                 
                 return result;
@@ -154,9 +165,31 @@
         
         // Logout function
         function logout() {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
-            loadPage('login');
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('currentPage');
+                loadPage('login');
+            }
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-PH', { 
+                style: 'currency', 
+                currency: 'PHP',
+                minimumFractionDigits: 2
+            }).format(amount);
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString('en-PH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
         }
         
         // Check auth on page load

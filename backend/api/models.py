@@ -115,7 +115,7 @@ class Pledge(models.Model):
             self.status = 'Partially Paid'
         else:
             self.status = 'Unpaid'
-        self.save()
+        self.save(update_fields=['status'])
     
     def __str__(self):
         return f"{self.member.full_name} - {self.pledge_description}"

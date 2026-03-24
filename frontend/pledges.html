@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pledges - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation (same as dashboard) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="sacramentsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cross me-1"></i>Sacraments
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Baptism'})">Baptism</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Confirmation'})">Confirmation</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Marriage'})">Marriage</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="loadPage('pledges')">Pledges</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('reports')">Reports</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6">
+                        <i class="fas fa-hand-holding-heart me-2"></i>Pledge Management
+                    </h1>
+                    <button class="btn btn-primary btn-lg" onclick="loadPage('pledge-form')">
+                        <i class="fas fa-plus me-2"></i>New Pledge
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="filterPledges('all')">All Pledges</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="filterPledges('Unpaid')">Unpaid</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="filterPledges('Partially Paid')">Partially Paid</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="filterPledges('Fully Paid')">Fully Paid</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Pledges Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Description</th>
+                                        <th>Amount Promised</th>
+                                        <th>Total Paid</th>
+                                        <th>Balance</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pledgesTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        
+        function initPledges() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            loadPledges();
+        }
+        
+        async function loadPledges() {
+            try {
+                let url = '/pledges/';
+                if (currentFilter !== 'all') {
+                    url += `?status=${encodeURIComponent(currentFilter)}`;
+                }
+                
+                const pledges = await apiCall(url);
+                displayPledges(pledges);
+            } catch (error) {
+                console.error('Error loading pledges:', error);
+                document.getElementById('pledgesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Error loading pledges
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function displayPledges(pledges) {
+            const tbody = document.getElementById('pledgesTableBody');
+            
+            if (pledges.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>No pledges found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = pledges.map(pledge => `
+                <tr>
+                    <td><strong>${pledge.member_name}</strong></td>
+                    <td>${pledge.pledge_description}</td>
+                    <td class="text-end">${formatCurrency(pledge.amount_promised)}</td>
+                    <td class="text-end text-success">${formatCurrency(pledge.total_paid)}</td>
+                    <td class="text-end ${pledge.balance > 0 ? 'text-danger' : 'text-success'}">
+                        ${formatCurrency(pledge.balance)}
+                    </td>
+                    <td>${formatDate(pledge.due_date)}</td>
+                    <td>
+                        <span class="badge bg-${pledge.status === 'Fully Paid' ? 'success' : pledge.status === 'Partially Paid' ? 'warning' : 'danger'}">
+                            ${pledge.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-info me-1" onclick="viewPledge(${pledge.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-success me-1" onclick="addPayment(${pledge.id})" title="Add Payment">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function filterPledges(status) {
+            currentFilter = status;
+            
+            // Update active tab
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadPledges();
+        }
+        
+        function viewPledge(id) {
+            loadPage('pledge-form', {id: id});
+        }
+        
+        function addPayment(id) {
+            loadPage('payments', {pledge_id: id});
+        }
+    </script>
+</body>
+</html>

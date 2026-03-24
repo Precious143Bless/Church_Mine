@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Details - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation (same as dashboard) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6">
+                        <i class="fas fa-user me-2"></i>
+                        <span id="memberName">Member Details</span>
+                    </h1>
+                    <div>
+                        <button class="btn btn-warning me-2" onclick="editMember()">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadPage('members')">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Personal Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="personalInfo"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-cross me-2"></i>Sacraments Received</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="sacramentsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Pledge Records</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="pledgesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let memberId = null;
+        
+        function initMemberDetail(params) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            memberId = params.id ? parseInt(params.id) : null;
+            if (memberId) {
+                loadMemberDetails(memberId);
+                loadSacraments(memberId);
+                loadPledges(memberId);
+            } else {
+                alert('No member ID provided');
+                loadPage('members');
+            }
+        }
+        
+        async function loadMemberDetails(id) {
+            try {
+                const member = await apiCall(`/members/${id}/`);
+                
+                document.getElementById('memberName').textContent = `${member.first_name} ${member.last_name}`;
+                
+                const personalInfo = `
+                    <p><strong><i class="fas fa-user me-2"></i>Full Name:</strong><br> ${member.first_name} ${member.middle_name || ''} ${member.last_name} ${member.suffix || ''}</p>
+                    <p><strong><i class="fas fa-calendar-alt me-2"></i>Birth Date:</strong><br> ${formatDate(member.birth_date)}</p>
+                    <p><strong><i class="fas fa-venus-mars me-2"></i>Gender:</strong><br> ${member.gender === 'M' ? 'Male' : 'Female'}</p>
+                    <p><strong><i class="fas fa-heart me-2"></i>Civil Status:</strong><br> ${member.civil_status}</p>
+                    <p><strong><i class="fas fa-briefcase me-2"></i>Occupation:</strong><br> ${member.occupation || 'N/A'}</p>
+                    <p><strong><i class="fas fa-phone me-2"></i>Contact:</strong><br> ${member.contact_number}</p>
+                    <p><strong><i class="fas fa-envelope me-2"></i>Email:</strong><br> ${member.email || 'N/A'}</p>
+                    <p><strong><i class="fas fa-map-marker-alt me-2"></i>Address:</strong><br> ${member.address}</p>
+                    ${member.spouse_name ? `<p><strong><i class="fas fa-ring me-2"></i>Spouse:</strong><br> ${member.spouse_name}</p>` : ''}
+                    <p><strong><i class="fas fa-calendar-plus me-2"></i>Registered:</strong><br> ${formatDate(member.date_registered)}</p>
+                `;
+                
+                document.getElementById('personalInfo').innerHTML = personalInfo;
+                
+            } catch (error) {
+                console.error('Error loading member:', error);
+                alert('Error loading member details');
+            }
+        }
+        
+        async function loadSacraments(memberId) {
+            try {
+                const sacraments = await apiCall(`/sacraments/?member=${memberId}`);
+                const container = document.getElementById('sacramentsList');
+                
+                if (sacraments.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center py-3">No sacrament records found</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sacrament</th>
+                                    <th>Date Received</th>
+                                    <th>Officiating Priest</th>
+                                    <th>Certificate #</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sacraments.map(sac => `
+                                    <tr>
+                                        <td><strong>${sac.sacrament_type}</strong></td>
+                                        <td>${formatDate(sac.date_received)}</td>
+                                        <td>${sac.officiating_priest}</td>
+                                        <td>${sac.certificate_number || 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading sacraments:', error);
+            }
+        }
+        
+        async function loadPledges(memberId) {
+            try {
+                const pledges = await apiCall(`/pledges/?member=${memberId}`);
+                const container = document.getElementById('pledgesList');
+                
+                if (pledges.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center py-3">No pledge records found</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Amount Promised</th>
+                                    <th>Total Paid</th>
+                                    <th>Balance</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pledges.map(pledge => `
+                                    <tr>
+                                        <td>${pledge.pledge_description}</td>
+                                        <td>${formatCurrency(pledge.amount_promised)}</td>
+                                        <td>${formatCurrency(pledge.total_paid)}</td>
+                                        <td>${formatCurrency(pledge.balance)}</td>
+                                        <td>${formatDate(pledge.due_date)}</td>
+                                        <td>
+                                            <span class="badge bg-${pledge.status === 'Fully Paid' ? 'success' : pledge.status === 'Partially Paid' ? 'warning' : 'danger'}">
+                                                ${pledge.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading pledges:', error);
+            }
+        }
+        
+        function editMember() {
+            loadPage('member-form', {id: memberId});
+        }
+    </script>
+</body>
+</html>

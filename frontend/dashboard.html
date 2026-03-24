@@ -7,7 +7,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
                 <i class="fas fa-church me-2"></i>Church Registry System
@@ -17,6 +17,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="loadPage('dashboard')">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="loadPage('members')">
                             <i class="fas fa-users me-1"></i>Members
@@ -29,7 +34,9 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Baptism'})">Baptism</a></li>
                             <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Confirmation'})">Confirmation</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'First Holy Communion'})">First Holy Communion</a></li>
                             <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Marriage'})">Marriage</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Last Rites'})">Last Rites</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -64,41 +71,63 @@
     <div class="container-fluid mt-4">
         <div class="row">
             <div class="col-12">
-                <h1 class="display-6 mb-4">Dashboard</h1>
+                <h1 class="display-6 mb-4">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </h1>
             </div>
         </div>
         
         <!-- Stats Cards -->
         <div class="row mb-4">
             <div class="col-md-3 mb-3">
-                <div class="card bg-primary text-white h-100">
+                <div class="card bg-primary text-white h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">Total Members</h5>
-                        <h2 class="display-4" id="totalMembers">0</h2>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-2">Total Members</h6>
+                                <h2 class="display-4 mb-0" id="totalMembers">0</h2>
+                            </div>
+                            <i class="fas fa-users fa-3x opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-success text-white h-100">
+                <div class="card bg-success text-white h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">Total Pledged</h5>
-                        <h2 class="display-4" id="totalPledged">₱0</h2>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-2">Total Pledged</h6>
+                                <h2 class="display-4 mb-0" id="totalPledged">₱0</h2>
+                            </div>
+                            <i class="fas fa-hand-holding-usd fa-3x opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-info text-white h-100">
+                <div class="card bg-info text-white h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">Total Paid</h5>
-                        <h2 class="display-4" id="totalPaid">₱0</h2>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-2">Total Paid</h6>
+                                <h2 class="display-4 mb-0" id="totalPaid">₱0</h2>
+                            </div>
+                            <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-warning text-white h-100">
+                <div class="card bg-warning text-white h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">Outstanding</h5>
-                        <h2 class="display-4" id="outstanding">₱0</h2>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-2">Outstanding</h6>
+                                <h2 class="display-4 mb-0" id="outstanding">₱0</h2>
+                            </div>
+                            <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -107,9 +136,9 @@
         <!-- Sacrament Stats -->
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
-                <div class="card h-100">
+                <div class="card h-100 shadow">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Baptism</h5>
+                        <h5 class="mb-0"><i class="fas fa-dove me-2"></i>Baptism</h5>
                     </div>
                     <div class="card-body text-center">
                         <h3 class="display-4" id="baptismCount">0</h3>
@@ -117,9 +146,9 @@
                 </div>
             </div>
             <div class="col-md-4 mb-3">
-                <div class="card h-100">
+                <div class="card h-100 shadow">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Confirmation</h5>
+                        <h5 class="mb-0"><i class="fas fa-hands-helping me-2"></i>Confirmation</h5>
                     </div>
                     <div class="card-body text-center">
                         <h3 class="display-4" id="confirmationCount">0</h3>
@@ -127,9 +156,9 @@
                 </div>
             </div>
             <div class="col-md-4 mb-3">
-                <div class="card h-100">
+                <div class="card h-100 shadow">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Marriage</h5>
+                        <h5 class="mb-0"><i class="fas fa-heart me-2"></i>Marriage</h5>
                     </div>
                     <div class="card-body text-center">
                         <h3 class="display-4" id="marriageCount">0</h3>
@@ -141,9 +170,9 @@
         <!-- Recent Activities -->
         <div class="row">
             <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Recent Members</h5>
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Members</h5>
                     </div>
                     <div class="card-body">
                         <div id="recentMembersList"></div>
@@ -151,9 +180,9 @@
                 </div>
             </div>
             <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Recent Payments</h5>
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Payments</h5>
                     </div>
                     <div class="card-body">
                         <div id="recentPaymentsList"></div>
@@ -164,6 +193,8 @@
     </div>
 
     <script>
+        let refreshInterval;
+        
         function initDashboard() {
             // Set username from localStorage
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -171,6 +202,10 @@
             
             // Load dashboard data
             loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(loadDashboardData, 30000);
         }
         
         async function loadDashboardData() {
@@ -179,9 +214,9 @@
                 
                 // Update stats
                 document.getElementById('totalMembers').textContent = data.total_members;
-                document.getElementById('totalPledged').textContent = `₱${data.pledges.total_pledged.toLocaleString()}`;
-                document.getElementById('totalPaid').textContent = `₱${data.pledges.total_paid.toLocaleString()}`;
-                document.getElementById('outstanding').textContent = `₱${data.pledges.outstanding.toLocaleString()}`;
+                document.getElementById('totalPledged').innerHTML = formatCurrency(data.pledges.total_pledged);
+                document.getElementById('totalPaid').innerHTML = formatCurrency(data.pledges.total_paid);
+                document.getElementById('outstanding').innerHTML = formatCurrency(data.pledges.outstanding);
                 
                 // Update sacrament counts
                 document.getElementById('baptismCount').textContent = data.sacraments.baptism;
@@ -190,52 +225,44 @@
                 
                 // Display recent members
                 const membersList = document.getElementById('recentMembersList');
-                if (data.recent_members.length > 0) {
+                if (data.recent_members && data.recent_members.length > 0) {
                     membersList.innerHTML = data.recent_members.map(member => `
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom hover-bg">
                             <div>
-                                <strong>${member.first_name} ${member.last_name}</strong><br>
-                                <small class="text-muted">Registered: ${new Date(member.date_registered).toLocaleDateString()}</small>
+                                <strong><i class="fas fa-user me-2"></i>${member.first_name} ${member.last_name}</strong><br>
+                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i>${formatDate(member.date_registered)}</small>
                             </div>
                             <button class="btn btn-sm btn-outline-primary" onclick="loadPage('member-detail', {id: ${member.id}})">
-                                View
+                                <i class="fas fa-eye"></i> View
                             </button>
                         </div>
                     `).join('');
                 } else {
-                    membersList.innerHTML = '<p class="text-muted">No recent members</p>';
+                    membersList.innerHTML = '<p class="text-muted text-center py-3"><i class="fas fa-info-circle"></i> No recent members</p>';
                 }
                 
                 // Display recent payments
                 const paymentsList = document.getElementById('recentPaymentsList');
-                if (data.recent_payments.length > 0) {
+                if (data.recent_payments && data.recent_payments.length > 0) {
                     paymentsList.innerHTML = data.recent_payments.map(payment => `
                         <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
                             <div>
-                                <strong>₱${payment.amount.toLocaleString()}</strong><br>
-                                <small>${payment.payment_method} - ${new Date(payment.payment_date).toLocaleDateString()}</small>
+                                <strong><i class="fas fa-money-bill-wave me-2"></i>${formatCurrency(payment.amount)}</strong><br>
+                                <small class="text-muted">
+                                    <i class="fas fa-credit-card me-1"></i>${payment.payment_method}
+                                    <i class="fas fa-calendar-alt ms-2 me-1"></i>${formatDate(payment.payment_date)}
+                                </small>
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    paymentsList.innerHTML = '<p class="text-muted">No recent payments</p>';
+                    paymentsList.innerHTML = '<p class="text-muted text-center py-3"><i class="fas fa-info-circle"></i> No recent payments</p>';
                 }
                 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
             }
         }
-        
-        // Auto-refresh dashboard every 30 seconds
-        let refreshInterval;
-        
-        // Enhanced initDashboard to set up refresh
-        const originalInitDashboard = initDashboard;
-        window.initDashboard = function() {
-            originalInitDashboard();
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(loadDashboardData, 30000);
-        };
     </script>
 </body>
 </html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('dashboard')">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">Members</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('pledges')">Pledges</a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6">
+                        <i class="fas fa-money-bill-wave me-2"></i>Payment Records
+                    </h1>
+                    <div>
+                        <button class="btn btn-info me-2" onclick="printPayments()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadPage('pledges')">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Pledges
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pledge Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow bg-info text-white">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Pledge Description</h6>
+                                <h4 id="pledgeDescription">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Total Promised</h6>
+                                <h4 id="totalPromised">₱0</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Total Paid</h6>
+                                <h4 id="totalPaidSummary">₱0</h4>
+                            </div>
+                            <div class="col-md-2">
+                                <h6>Balance</h6>
+                                <h4 id="balanceSummary">₱0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Payment Form -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Record New Payment</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentForm">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Amount *</label>
+                                    <input type="number" class="form-control" id="amount" step="0.01" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Payment Date *</label>
+                                    <input type="date" class="form-control" id="paymentDate" required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Payment Method *</label>
+                                    <select class="form-select" id="paymentMethod" required>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Check">Check</option>
+                                        <option value="Online Transfer">Online Transfer</option>
+                                        <option value="GCash">GCash</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Reference #</label>
+                                    <input type="text" class="form-control" id="referenceNumber">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Received By *</label>
+                                    <input type="text" class="form-control" id="receivedBy" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Receipt Number</label>
+                                    <input type="text" class="form-control" id="receiptNumber">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control" id="paymentNotes" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Record Payment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment History Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Payment History</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Reference #</th>
+                                        <th>Received By</th>
+                                        <th>Receipt #</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentsTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pledgeId = null;
+        let pledgeData = null;
+        
+        function initPayments(params) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            pledgeId = params.pledge_id ? parseInt(params.pledge_id) : null;
+            
+            if (!pledgeId) {
+                alert('No pledge selected');
+                loadPage('pledges');
+                return;
+            }
+            
+            loadPledgeData();
+            loadPayments();
+            
+            const form = document.getElementById('paymentForm');
+            form.addEventListener('submit', savePayment);
+            
+            // Set default payment date to today
+            document.getElementById('paymentDate').valueAsDate = new Date();
+        }
+        
+        async function loadPledgeData() {
+            try {
+                pledgeData = await apiCall(`/pledges/${pledgeId}/`);
+                
+                document.getElementById('pledgeDescription').textContent = pledgeData.pledge_description;
+                document.getElementById('totalPromised').innerHTML = formatCurrency(pledgeData.amount_promised);
+                document.getElementById('totalPaidSummary').innerHTML = formatCurrency(pledgeData.total_paid);
+                document.getElementById('balanceSummary').innerHTML = formatCurrency(pledgeData.balance);
+                
+                if (pledgeData.balance <= 0) {
+                    document.getElementById('balanceSummary').className = 'text-success';
+                }
+            } catch (error) {
+                console.error('Error loading pledge:', error);
+                alert('Error loading pledge data');
+            }
+        }
+        
+        async function loadPayments() {
+            try {
+                const payments = await apiCall(`/payments/?pledge=${pledgeId}`);
+                displayPayments(payments);
+            } catch (error) {
+                console.error('Error loading payments:', error);
+                document.getElementById('paymentsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-danger">Error loading payments</td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function displayPayments(payments) {
+            const tbody = document.getElementById('paymentsTableBody');
+            
+            if (payments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i>No payments recorded yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = payments.map(payment => `
+                <tr>
+                    <td>${formatDate(payment.payment_date)}</td>
+                    <td class="text-success">${formatCurrency(payment.amount)}</td>
+                    <td>${payment.payment_method}</td>
+                    <td>${payment.reference_number || '-'}</td>
+                    <td>${payment.received_by}</td>
+                    <td>${payment.receipt_number || '-'}</td>
+                    <td>${payment.notes || '-'}</td>
+                </tr>
+            `).join('');
+        }
+        
+        async function savePayment(e) {
+            e.preventDefault();
+            
+            const paymentData = {
+                pledge: pledgeId,
+                amount: parseFloat(document.getElementById('amount').value),
+                payment_date: document.getElementById('paymentDate').value,
+                payment_method: document.getElementById('paymentMethod').value,
+                reference_number: document.getElementById('referenceNumber').value,
+                received_by: document.getElementById('receivedBy').value,
+                receipt_number: document.getElementById('receiptNumber').value,
+                notes: document.getElementById('paymentNotes').value,
+            };
+            
+            if (!paymentData.amount || paymentData.amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            if (!paymentData.received_by) {
+                alert('Please enter who received the payment');
+                return;
+            }
+            
+            try {
+                await apiCall('/payments/', 'POST', paymentData);
+                alert('Payment recorded successfully!');
+                
+                // Reset form
+                document.getElementById('paymentForm').reset();
+                document.getElementById('paymentDate').valueAsDate = new Date();
+                document.getElementById('amount').focus();
+                
+                // Reload data
+                loadPledgeData();
+                loadPayments();
+            } catch (error) {
+                console.error('Error saving payment:', error);
+                alert('Error recording payment: ' + error.message);
+            }
+        }
+        
+        function printPayments() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
