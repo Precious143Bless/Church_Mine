@@ -10,7 +10,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-secret-key-here')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False  # Set to False for production
 
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com', 'www.yourusername.pythonanywhere.com']
+ALLOWED_HOSTS = ['churchregistry.pythonanywhere.com', 'www.churchregistry.pythonanywhere.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -63,24 +63,24 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'yourusername$church_registry',
-        'USER': 'yourusername',
+        'NAME': 'churchregistry$church_registry',
+        'USER': 'churchregistry',
         'PASSWORD': 'your_mysql_password',
-        'HOST': 'yourusername.mysql.pythonanywhere-services.com',
+        'HOST': 'churchregistry.mysql.pythonanywhere-services.com',
         'PORT': '3306',
     }
 }
 
 # Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/yourusername/church-registry-system/static'
+STATIC_ROOT = '/home/churchregistry/church-registry-system/static'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '..', 'frontend', 'assets'),
 ]
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/yourusername/church-registry-system/media'
+MEDIA_ROOT = '/home/churchregistry/church-registry-system/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -95,5 +95,5 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    'https://yourusername.pythonanywhere.com',
+    'https://churchregistry.pythonanywhere.com',
 ]

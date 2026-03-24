@@ -3,7 +3,7 @@ import os
 import sys
 
 # Add your project directory to the path
-path = '/home/yourusername/church-registry-system'
+path = '/home/churchregistry/church-registry-system'
 if path not in sys.path:
     sys.path.append(path)
 
