@@ -8,6 +8,7 @@ from api import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.serve_index, name='home'),
+    path('test-frontend/', views.test_frontend, name='test_frontend'),  # Add this test URL
     
     # Serve HTML files directly from frontend folder
     path('login.html', TemplateView.as_view(template_name='login.html'), name='login_page'),
