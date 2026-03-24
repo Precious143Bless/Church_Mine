@@ -1,11 +1,16 @@
+# backend/backend/settings.py
 import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-secret-key-here')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False  # Set to False for production
+
+ALLOWED_HOSTS = ['yourusername.pythonanywhere.com', 'www.yourusername.pythonanywhere.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -33,13 +38,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-# IMPORTANT: Configure templates to find your HTML files
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, '..'),  # Root directory for index.html
-            os.path.join(BASE_DIR, '..', 'frontend'),  # Frontend folder for HTML files
+            os.path.join(BASE_DIR, '..'),  # Root directory
+            os.path.join(BASE_DIR, '..', 'frontend'),  # Frontend folder
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -55,37 +59,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Database Configuration
+# Database - Use MySQL on PythonAnywhere
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'church_registry',
-        'USER': 'root',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
+        'NAME': 'yourusername$church_registry',
+        'USER': 'yourusername',
+        'PASSWORD': 'your_mysql_password',
+        'HOST': 'yourusername.mysql.pythonanywhere-services.com',
         'PORT': '3306',
     }
 }
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Manila'
-USE_I18N = True
-USE_TZ = True
-
-# Static files configuration - IMPORTANT for your assets folder
+# Static files
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/yourusername/church-registry-system/static'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '..', 'frontend', 'assets'),  # Serve assets folder
-    os.path.join(BASE_DIR, '..', 'frontend'),  # Also serve frontend root if needed
+    os.path.join(BASE_DIR, '..', 'frontend', 'assets'),
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/yourusername/church-registry-system/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -98,4 +93,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    'https://yourusername.pythonanywhere.com',
+]
