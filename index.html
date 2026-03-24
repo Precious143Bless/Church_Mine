@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Registry System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Dynamic content will be loaded here -->
+    </div>
+
+    <script>
+        // Check if user is logged in
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            const currentPage = getCurrentPage();
+            
+            if (!token && currentPage !== 'login') {
+                loadPage('login');
+            } else if (token && currentPage === 'login') {
+                loadPage('dashboard');
+            } else if (currentPage === '') {
+                loadPage('login');
+            } else {
+                loadPage(currentPage);
+            }
+        }
+        
+        function getCurrentPage() {
+            const hash = window.location.hash.substring(1);
+            return hash || localStorage.getItem('currentPage') || 'login';
+        }
+        
+        async function loadPage(pageName, params = {}) {
+            const app = document.getElementById('app');
+            
+            // Show loading
+            app.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`/static/${pageName}.html`);
+                if (!response.ok) throw new Error('Page not found');
+                
+                let html = await response.text();
+                app.innerHTML = html;
+                
+                // Update URL hash
+                window.location.hash = pageName;
+                localStorage.setItem('currentPage', pageName);
+                
+                // Initialize page-specific JavaScript
+                initializePage(pageName, params);
+                
+            } catch (error) {
+                console.error('Error loading page:', error);
+                app.innerHTML = `
+                    <div class="alert alert-danger m-5">
+                        <h4>Error Loading Page</h4>
+                        <p>Could not load ${pageName}.html. Please check if the file exists.</p>
+                        <button class="btn btn-primary" onclick="loadPage('dashboard')">Go to Dashboard</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function initializePage(pageName, params) {
+            switch(pageName) {
+                case 'login':
+                    initLogin();
+                    break;
+                case 'dashboard':
+                    initDashboard();
+                    break;
+                case 'members':
+                    initMembers();
+                    break;
+                case 'member-detail':
+                    initMemberDetail(params);
+                    break;
+                case 'member-form':
+                    initMemberForm(params);
+                    break;
+                case 'sacraments':
+                    initSacraments();
+                    break;
+                case 'baptism-form':
+                    initBaptismForm(params);
+                    break;
+                case 'confirmation-form':
+                    initConfirmationForm(params);
+                    break;
+                case 'marriage-form':
+                    initMarriageForm(params);
+                    break;
+                case 'pledges':
+                    initPledges();
+                    break;
+                case 'pledge-form':
+                    initPledgeForm(params);
+                    break;
+                case 'payments':
+                    initPayments(params);
+                    break;
+                case 'reports':
+                    initReports();
+                    break;
+            }
+        }
+        
+        // API Helper Functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const token = localStorage.getItem('auth_token');
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Token ${token}`;
+            }
+            
+            const options = {
+                method: method,
+                headers: headers,
+            };
+            
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                const response = await fetch(`/api${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'API Error');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            loadPage('login');
+        }
+        
+        // Check auth on page load
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', () => {
+            const page = getCurrentPage();
+            if (page !== 'login' || localStorage.getItem('auth_token')) {
+                loadPage(page);
+            }
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

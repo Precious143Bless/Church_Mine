@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Church Registry System</title>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="loadPage('dashboard')">
+                <i class="fas fa-church me-2"></i>Church Registry System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('members')">
+                            <i class="fas fa-users me-1"></i>Members
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="sacramentsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cross me-1"></i>Sacraments
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Baptism'})">Baptism</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Confirmation'})">Confirmation</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadPage('sacraments', {type: 'Marriage'})">Marriage</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('pledges')">
+                            <i class="fas fa-hand-holding-heart me-1"></i>Pledges
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="loadPage('reports')">
+                            <i class="fas fa-chart-bar me-1"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="userName"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="display-6 mb-4">Dashboard</h1>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Members</h5>
+                        <h2 class="display-4" id="totalMembers">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Pledged</h5>
+                        <h2 class="display-4" id="totalPledged">₱0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Paid</h5>
+                        <h2 class="display-4" id="totalPaid">₱0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Outstanding</h5>
+                        <h2 class="display-4" id="outstanding">₱0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sacrament Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Baptism</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h3 class="display-4" id="baptismCount">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Confirmation</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h3 class="display-4" id="confirmationCount">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Marriage</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h3 class="display-4" id="marriageCount">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activities -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Members</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentMembersList"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Payments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentPaymentsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initDashboard() {
+            // Set username from localStorage
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || 'User';
+            
+            // Load dashboard data
+            loadDashboardData();
+        }
+        
+        async function loadDashboardData() {
+            try {
+                const data = await apiCall('/dashboard/');
+                
+                // Update stats
+                document.getElementById('totalMembers').textContent = data.total_members;
+                document.getElementById('totalPledged').textContent = `₱${data.pledges.total_pledged.toLocaleString()}`;
+                document.getElementById('totalPaid').textContent = `₱${data.pledges.total_paid.toLocaleString()}`;
+                document.getElementById('outstanding').textContent = `₱${data.pledges.outstanding.toLocaleString()}`;
+                
+                // Update sacrament counts
+                document.getElementById('baptismCount').textContent = data.sacraments.baptism;
+                document.getElementById('confirmationCount').textContent = data.sacraments.confirmation;
+                document.getElementById('marriageCount').textContent = data.sacraments.marriage;
+                
+                // Display recent members
+                const membersList = document.getElementById('recentMembersList');
+                if (data.recent_members.length > 0) {
+                    membersList.innerHTML = data.recent_members.map(member => `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                            <div>
+                                <strong>${member.first_name} ${member.last_name}</strong><br>
+                                <small class="text-muted">Registered: ${new Date(member.date_registered).toLocaleDateString()}</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadPage('member-detail', {id: ${member.id}})">
+                                View
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    membersList.innerHTML = '<p class="text-muted">No recent members</p>';
+                }
+                
+                // Display recent payments
+                const paymentsList = document.getElementById('recentPaymentsList');
+                if (data.recent_payments.length > 0) {
+                    paymentsList.innerHTML = data.recent_payments.map(payment => `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                            <div>
+                                <strong>₱${payment.amount.toLocaleString()}</strong><br>
+                                <small>${payment.payment_method} - ${new Date(payment.payment_date).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    paymentsList.innerHTML = '<p class="text-muted">No recent payments</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Auto-refresh dashboard every 30 seconds
+        let refreshInterval;
+        
+        // Enhanced initDashboard to set up refresh
+        const originalInitDashboard = initDashboard;
+        window.initDashboard = function() {
+            originalInitDashboard();
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(loadDashboardData, 30000);
+        };
+    </script>
+</body>
+</html>
